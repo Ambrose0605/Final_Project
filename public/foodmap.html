@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今天吃什麼</title>
+
+  <style>
+    :root{
+        --bg: #fff7ed;
+        --card: rgba(255,255,255,0.9);
+        --card2: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --line: rgba(0,0,0,0.08);
+        --orange: #ff7a00;
+        --orange2:#ff9a3c;
+        --blue: #2563eb;
+        --danger:#ef4444;
+        --shadow: 0 12px 30px rgba(0,0,0,0.10);
+        --shadow2: 0 6px 16px rgba(0,0,0,0.10);
+        --radius: 16px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+
+    body{
+        margin:0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Microsoft JhengHei", sans-serif;
+        color:var(--text);
+        background:
+        radial-gradient(1200px 600px at 10% 0%, #ffe5c7 0%, transparent 60%),
+        radial-gradient(1000px 600px at 90% 10%, #ffd6a6 0%, transparent 65%),
+        linear-gradient(180deg, #fff7ed 0%, #ffffff 55%, #fff7ed 100%);
+    }
+
+    header{
+        position:sticky;
+        top:0;
+        z-index:10;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:10px 14px;
+        background: linear-gradient(90deg, var(--orange) 0%, var(--orange2) 60%, #ffc06a 100%);
+        color:#fff;
+        box-shadow: var(--shadow2);
+    }
+
+    header h1{
+        margin:0;
+        font-size:22px;
+        letter-spacing:0.5px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    .header-right{
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+    }
+
+    button{
+        border:none;
+        border-radius:12px;
+        padding:10px 12px;
+        font-weight:800;
+        cursor:pointer;
+        transition: transform .06s ease, box-shadow .2s ease, opacity .2s ease, background .2s ease;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+    button:active{ transform: translateY(1px) scale(0.99); }
+    button:hover{ opacity:0.95; }
+
+    header button{
+        background: rgba(255,255,255,0.18);
+        color:#fff;
+        border:1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.14);
+    }
+    header button:hover{
+        background: rgba(255,255,255,0.25);
+    }
+
+    .user-badge{
+        font-weight:900;
+        background: rgba(255,255,255,0.2);
+        padding:8px 12px;
+        border-radius:999px;
+        border: 1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(8px);
+    }
+
+    .container{
+        display:flex;
+        height: calc(100vh - 64px);
+        gap:12px;
+        padding:12px;
+    }
+
+    .map-area{
+        width:70%;
+        border-radius: var(--radius);
+        overflow:hidden;
+        background: rgba(255,255,255,0.6);
+        box-shadow: var(--shadow);
+        border:1px solid var(--line);
+    }
+
+    .map-frame{
+        width:100%;
+        height: calc(100vh - 64px - 24px);
+        border:0;
+    }
+
+    .list{
+        width:30%;
+        padding:16px;
+        overflow-y:auto;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+
+    .list::-webkit-scrollbar{ width:10px; }
+    .list::-webkit-scrollbar-thumb{
+        background: rgba(0,0,0,0.18);
+        border-radius:999px;
+        border:2px solid rgba(255,255,255,0.8);
+    }
+    .list::-webkit-scrollbar-track{ background: transparent; }
+
+    .list h2{
+        margin:12px 0 10px;
+        font-size:18px;
+    }
+
+    .rank-card{
+        border:1px solid var(--line);
+        border-radius: var(--radius);
+        padding:14px;
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf2 100%);
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+        margin-bottom:14px;
+    }
+
+    .rank-item{
+        padding:10px 10px;
+        border-bottom:1px dashed rgba(0,0,0,0.12);
+        border-radius:12px;
+    }
+    .rank-item:hover{
+        background: transparent;
+        transform: none;
+    }
+
+    .rank-title{ font-weight:900; }
+    .rank-sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+    .pill{
+        display:inline-block;
+        padding:3px 10px;
+        border-radius:999px;
+        background:#fff;
+        border:1px solid rgba(0,0,0,0.08);
+        font-size:12px;
+        margin-left:6px;
+    }
+
+    input, select, textarea{
+        width:100%;
+        box-sizing:border-box;
+        padding:10px 12px;
+        border-radius:12px;
+        border:1px solid rgba(0,0,0,0.12);
+        background: rgba(255,255,255,0.95);
+        font-size:14px;
+        outline:none;
+        transition: box-shadow .2s ease, border .2s ease;
+    }
+    input:focus, select:focus, textarea:focus{
+        border-color: rgba(37,99,235,0.5);
+        box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+    }
+
+    #submit{
+        background: linear-gradient(90deg, var(--blue) 0%, #4f8bff 100%);
+        color:#fff;
+        width:100%;
+        margin-top:10px;
+    }
+
+    .store-item{
+        cursor:pointer;
+        padding:10px 10px;
+        border-radius:12px;
+        transition: background .15s ease, transform .08s ease;
+    }
+    .store-item:hover{
+        background: rgba(0,0,0,0.04);
+        transform: translateY(-1px);
+    }
+
+    .store-item button{
+        box-shadow:none;
+        background: transparent;
+        border:none;
+        color: var(--danger);
+        font-weight:900;
+        padding:4px 8px;
+        border-radius:10px;
+    }
+    .store-item button:hover{
+        background: rgba(239,68,68,0.10);
+    }
+
+    #storeInfo{
+        margin-top:14px;
+        padding:14px;
+        border-radius: var(--radius);
+        border:1px solid var(--line);
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf2 100%);
+        font-size:14px;
+        display:none;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+    }
+    #storeInfo h3{
+        font-size:18px;
+        margin:0 0 8px;
+    }
+
+    .review-tabs{
+        display:flex;
+        gap:10px;
+        margin-top:10px;
+        flex-wrap:wrap;
+    }
+    .review-tabs button{
+        padding:8px 10px;
+        border:1px solid rgba(0,0,0,0.10);
+        background:#fff;
+        border-radius:12px;
+        cursor:pointer;
+        font-size:13px;
+        box-shadow:none;
+    }
+    .review-tabs button.active{
+        border-color: rgba(37,99,235,0.45);
+        color: var(--blue);
+        background: rgba(37,99,235,0.08);
+        font-weight:900;
+    }
+
+    .review-panel{
+        margin-top:10px;
+        padding:12px;
+        border:1px solid rgba(0,0,0,0.10);
+        border-radius: var(--radius);
+        background: rgba(255,255,255,0.9);
+    }
+
+    .review-form label{
+        display:block;
+        font-size:12px;
+        color:var(--muted);
+        margin:10px 0 6px;
+        font-weight:700;
+    }
+    .review-form .row{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+    .review-form .row > div{ flex:1; min-width: 160px; }
+
+    .review-form .actions{
+        margin-top:10px;
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+    }
+    .review-form .actions button{
+        background: linear-gradient(90deg, var(--blue) 0%, #4f8bff 100%);
+        color:#fff;
+        box-shadow: 0 10px 22px rgba(37,99,235,0.25);
+    }
+
+    .review-item{
+        border-bottom:1px dashed rgba(0,0,0,0.15);
+        padding:10px 0;
+    }
+    .review-item:last-child{ border-bottom:none; }
+    .review-item .meta{
+        font-size:12px;
+        color:var(--muted);
+        margin-bottom:6px;
+    }
+    .review-item .content{
+        font-size:14px;
+        white-space:pre-wrap;
+        line-height:1.5;
+    }
+    .review-empty{
+        font-size:13px;
+        color:var(--muted);
+        padding:10px 0;
+    }
+
+    #authBox{
+        margin: 10px 0 14px;
+        padding:14px;
+        border:1px solid rgba(0,0,0,0.10);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, #fffaf0 0%, #ffffff 100%);
+        display:none;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+    }
+    #authBox h3{ margin:0 0 8px; }
+    #authBox .row{
+        display:flex;
+        gap:10px;
+        margin-top:8px;
+        flex-wrap:wrap;
+    }
+    #authBox button{
+        background: linear-gradient(90deg, var(--orange) 0%, var(--orange2) 100%);
+        color:#fff;
+        box-shadow: 0 10px 22px rgba(255,122,0,0.25);
+    }
+    #authBox button[style*="background:#666"]{
+        background: #6b7280 !important;
+        box-shadow: none;
+    }
+    #authMsg{ font-size:12px; color:var(--muted); margin-top:8px; }
+
+    .profile-topbar{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:10px;
+    }
+    .back-btn{
+        padding:8px 12px;
+        border:none;
+        border-radius:12px;
+        cursor:pointer;
+        background:#6b7280;
+        color:#fff;
+        font-weight:900;
+        box-shadow:none;
+    }
+
+    .profile-header{
+        display:flex;
+        gap:12px;
+        align-items:center;
+        padding:12px;
+        border:1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255,255,255,0.9);
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+    }
+    .avatar{
+        width:74px;
+        height:74px;
+        border-radius:999px;
+        background:#f3f4f6;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex:0 0 auto;
+        border:1px solid rgba(0,0,0,0.10);
+    }
+    .avatar img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        display:block;
+    }
+    .profile-name{
+        font-weight:900;
+        font-size:16px;
+        margin:0;
+    }
+    .profile-sub{
+        font-size:12px;
+        color:var(--muted);
+        margin-top:4px;
+    }
+
+    .section{
+        margin-top:12px;
+        padding-top:10px;
+        border-top:1px dashed rgba(0,0,0,0.15);
+    }
+
+    .accordion-btn{
+        width:100%;
+        text-align:left;
+        padding:12px 12px;
+        border:1px solid rgba(0,0,0,0.10);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf2 100%);
+        cursor:pointer;
+        font-weight:900;
+        box-shadow: none;
+    }
+    .accordion-btn:hover{ background: rgba(255,122,0,0.08); }
+
+    .accordion-content{
+        margin-top:10px;
+        padding:12px;
+        border:1px dashed rgba(0,0,0,0.18);
+        border-radius: var(--radius);
+        background:#fff;
+        display:none;
+    }
+    .accordion-content.open{ display:block; }
+
+    .mini-btn{
+        padding:8px 10px;
+        border:none;
+        border-radius:12px;
+        cursor:pointer;
+        font-weight:900;
+        box-shadow:none;
+    }
+    .mini-btn.primary{ background: linear-gradient(90deg, var(--blue) 0%, #4f8bff 100%); color:#fff; }
+    .mini-btn.gray{ background:#6b7280; color:#fff; }
+    .mini-btn.danger{ background: linear-gradient(90deg, #ef4444 0%, #ff6b6b 100%); color:#fff; }
+
+    .fav-item, .myreview-item{
+        padding:10px 0;
+        border-bottom:1px dashed rgba(0,0,0,0.12);
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        align-items:flex-start;
+    }
+    .fav-item:last-child, .myreview-item:last-child{ border-bottom:none; }
+    .item-title{ font-weight:900; }
+    .item-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+    .item-text{ margin-top:6px; white-space:pre-wrap; line-height:1.5; }
+
+    .inline-row{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        align-items:center;
+    }
+
+    @media (max-width: 1050px){
+        .container{ flex-direction:column; height:auto; }
+        .map-area{ width:100%; }
+        .map-frame{ height: 55vh; }
+        .list{ width:100%; }
+    }
+  </style>
+
+  <script>
+    let restaurants = JSON.parse(localStorage.getItem("restaurants")) || [];
+    let mapFrame, storeListDiv, districtSelect, storeInfoDiv;
+    let activeStoreIndex = null;
+    let authUser = null;
+
+    function getToken(){ return localStorage.getItem("token") || ""; }
+    function setToken(t){ localStorage.setItem("token", t); }
+    function clearToken(){ localStorage.removeItem("token"); }
+
+    function start() {
+      mapFrame       = document.getElementById("mapFrame");
+      storeListDiv   = document.getElementById("storeList");
+      districtSelect = document.getElementById("where");
+      storeInfoDiv   = document.getElementById("storeInfo");
+
+      restaurants = restaurants.map(r => {
+        const { image, ...rest } = r;
+        return rest;
+      });
+      localStorage.setItem("restaurants", JSON.stringify(restaurants));
+
+      document.getElementById("random").addEventListener("click", Random, false);
+      document.getElementById("add").addEventListener("click", Add, false);
+      document.getElementById("submit").addEventListener("click", Submit, false);
+
+      document.getElementById("btnLogin").addEventListener("click", () => {
+        if(authUser) showProfile();
+        else toggleAuthBox(true);
+      }, false);
+
+      document.getElementById("btnLogout").addEventListener("click", logout, false);
+      document.getElementById("btnProfile").addEventListener("click", showProfile, false);
+
+      renderList(restaurants);
+      showHome();
+      checkMe();
+      loadRankings();
+    }
+
+    function showHome(){
+      const home = document.getElementById("homePanel");
+      const prof = document.getElementById("profilePanel");
+      if(home) home.style.display = "block";
+      if(prof) prof.style.display = "none";
+    }
+
+    function showProfilePanel(){
+      const home = document.getElementById("homePanel");
+      const prof = document.getElementById("profilePanel");
+      if(home) home.style.display = "none";
+      if(prof) prof.style.display = "block";
+    }
+
+    function toggleAccordion(id){
+      const box = document.getElementById(id);
+      if(!box) return;
+      box.classList.toggle("open");
+    }
+
+    function toggleAuthBox(show){
+      const box = document.getElementById("authBox");
+      if(!box) return;
+      box.style.display = show ? "block" : "none";
+      if(show){
+        document.getElementById("authMsg").textContent = "";
+      }
+    }
+
+    function renderAuthUI(){
+      const badge = document.getElementById("userBadge");
+      const btnLogin = document.getElementById("btnLogin");
+      const btnLogout = document.getElementById("btnLogout");
+
+      if(authUser){
+        badge.textContent = `👤 ${authUser.username}`;
+        badge.style.display = "inline-block";
+        btnLogin.textContent = "已登入";
+        btnLogin.style.display = "inline-block";
+        btnLogout.style.display = "inline-block";
+        toggleAuthBox(false);
+      }else{
+        badge.style.display = "none";
+        btnLogin.textContent = "登入/註冊";
+        btnLogin.style.display = "inline-block";
+        btnLogout.style.display = "none";
+      }
+    }
+
+    async function checkMe(){
+      const token = getToken();
+      if(!token){
+        authUser = null;
+        renderAuthUI();
+        return;
+      }
+      try{
+        const res = await fetch("/api/auth/me", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        if(!res.ok) throw new Error("me failed");
+        const data = await res.json();
+        authUser = data.user;
+      }catch(e){
+        authUser = null;
+        clearToken();
+      }
+      renderAuthUI();
+    }
+
+    async function register(){
+      const u = document.getElementById("authUsername").value.trim();
+      const p = document.getElementById("authPassword").value;
+      const msg = document.getElementById("authMsg");
+      msg.textContent = "註冊中...";
+
+      try{
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "register failed");
+
+        setToken(data.token);
+        authUser = data.user;
+        msg.textContent = "註冊成功並已登入";
+        renderAuthUI();
+      }catch(e){
+        msg.textContent = e.message;
+      }
+    }
+
+    async function login(){
+      const u = document.getElementById("authUsername").value.trim();
+      const p = document.getElementById("authPassword").value;
+      const msg = document.getElementById("authMsg");
+      msg.textContent = "登入中...";
+
+      try{
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "login failed");
+
+        setToken(data.token);
+        authUser = data.user;
+        msg.textContent = "登入成功";
+        renderAuthUI();
+      }catch(e){
+        msg.textContent = e.message;
+      }
+    }
+
+    function logout(){
+      authUser = null;
+      clearToken();
+      renderAuthUI();
+      alert("已登出");
+      showHome();
+    }
+
+    function Random () {
+      if (restaurants.length === 0) {
+        window.alert("目前沒有餐廳可以選擇，請先新增店家");
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * restaurants.length);
+      const chosenRestaurant = restaurants[randomIndex];
+
+      alert(`今天吃：\n\n【${chosenRestaurant.name}】\n\n位於 ${chosenRestaurant.district}，地圖已更新`);
+
+      if (chosenRestaurant.address) updateMapByAddress(chosenRestaurant.address, chosenRestaurant.district);
+      else updateMap(chosenRestaurant.name, chosenRestaurant.district);
+    }
+
+    function Add () {
+      let name = prompt("輸入新餐廳名稱 : ");
+      if (!name) return;
+
+      let district = districtSelect.value;
+
+      let address = prompt("輸入店家地址（例如：○○區○○路123號）:");
+      if (!address) address = "";
+
+      const newRestaurant = { name, district, address };
+
+      restaurants.push(newRestaurant);
+      localStorage.setItem("restaurants", JSON.stringify(restaurants));
+      renderList(restaurants);
+
+      if (address.trim() !== "") updateMapByAddress(address, district);
+      alert(`已成功新增【${name}】到清單！位於 ${district}`);
+    }
+
+    function Submit() {
+      const name = document.getElementById("search").value;
+      const area = document.getElementById("where").value;
+      updateMap(name, area);
+    }
+
+    function updateMap(name, district) {
+      const query = `基隆市 ${district} ${name} 餐廳`;
+      mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+    }
+
+    function updateMapByAddress(address, district) {
+      const query = `基隆市 ${district} ${address}`;
+      mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+    }
+
+    function removeRestaurant(index) {
+      restaurants.splice(index, 1);
+      localStorage.setItem('restaurants', JSON.stringify(restaurants));
+
+      if (activeStoreIndex === index) {
+        activeStoreIndex = null;
+        if (storeInfoDiv) {
+          storeInfoDiv.style.display = "none";
+          storeInfoDiv.innerHTML = "";
+        }
+      }
+    }
+
+    function switchReviewTab(mode){
+      const btnWrite = document.getElementById("tabWrite");
+      const btnList  = document.getElementById("tabList");
+      const panelWrite = document.getElementById("panelWrite");
+      const panelList  = document.getElementById("panelList");
+      if(!btnWrite || !btnList || !panelWrite || !panelList) return;
+
+      if(mode === "write"){
+        btnWrite.classList.add("active");
+        btnList.classList.remove("active");
+        panelWrite.style.display = "block";
+        panelList.style.display  = "none";
+      }else{
+        btnList.classList.add("active");
+        btnWrite.classList.remove("active");
+        panelList.style.display  = "block";
+        panelWrite.style.display = "none";
+      }
+    }
+
+    async function loadReviews(storeKey){
+      const listDiv = document.getElementById("reviewsList");
+      if(!listDiv) return;
+      listDiv.innerHTML = "載入中...";
+
+      try{
+        const res = await fetch(`/api/reviews?storeKey=${encodeURIComponent(storeKey)}`);
+        if(!res.ok) throw new Error("reviews api failed");
+        const data = await res.json();
+        const reviews = data.reviews || [];
+
+        if(reviews.length === 0){
+          listDiv.innerHTML = `<div class="review-empty">目前尚無評論</div>`;
+          return;
+        }
+
+        listDiv.innerHTML = reviews.map(r => {
+          const name = r.userName || "匿名";
+          const rating = Number(r.rating || 0);
+          const comment = r.comment || "";
+          const created = r.createdAt ? new Date(r.createdAt) : null;
+          const timeText = created && !isNaN(created.getTime()) ? created.toLocaleString("zh-TW") : "";
+
+          return `
+            <div class="review-item">
+              <div class="meta">⭐ ${rating} / 5　｜　${escapeHtml(name)}${timeText ? `　｜　${escapeHtml(timeText)}` : ""}</div>
+              <div class="content">${escapeHtml(comment)}</div>
+            </div>
+          `;
+        }).join("");
+      }catch(e){
+        listDiv.innerHTML = `<div class="review-empty">評論讀取失敗，請確認後端 API 是否正常</div>`;
+      }
+    }
+
+    async function refreshSummaryLine(storeKey){
+      try{
+        const res = await fetch(`/api/reviews/summary?storeKey=${encodeURIComponent(storeKey)}`);
+        if(!res.ok) throw new Error("summary api failed");
+        const summary = await res.json();
+
+        const avgLine = document.getElementById("avgLine");
+        if(avgLine){
+          if(!summary || summary.count === 0){
+            avgLine.textContent = "⭐ 平均評分：目前尚無評論";
+          }else{
+            avgLine.textContent = `⭐ 平均評分：${Number(summary.avgRating).toFixed(1)} / 5（${summary.count} 則）`;
+          }
+        }
+      }catch(e){
+        const avgLine = document.getElementById("avgLine");
+        if(avgLine) avgLine.textContent = "⭐ 平均評分：讀取失敗";
+      }
+    }
+
+    async function submitReview(storeKey, storeName, district){
+      if(!authUser){
+        alert("評論前請先登入");
+        toggleAuthBox(true);
+        return;
+      }
+
+      const rateEl = document.getElementById("reviewRating");
+      const textEl = document.getElementById("reviewText");
+      const msgEl  = document.getElementById("reviewMsg");
+      if(!rateEl || !textEl) return;
+
+      const rating   = Number(rateEl.value);
+      const comment  = (textEl.value || "").trim();
+
+      if(!comment){
+        if(msgEl) msgEl.textContent = "請輸入評論內容";
+        return;
+      }
+
+      if(msgEl) msgEl.textContent = "送出中...";
+
+      try{
+        const res = await fetch(`/api/reviews`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getToken()
+          },
+          body: JSON.stringify({ storeKey, storeName, district, rating, comment })
+        });
+
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "post failed");
+
+        textEl.value = "";
+        if(msgEl) msgEl.textContent = "送出成功！";
+
+        await loadReviews(storeKey);
+        await refreshSummaryLine(storeKey);
+        await loadRankings();
+
+        switchReviewTab("list");
+      }catch(e){
+        if(msgEl) msgEl.textContent = "送出失敗：" + e.message;
+
+        if(String(e.message).includes("token")){
+          clearToken();
+          authUser = null;
+          renderAuthUI();
+        }
+      }
+    }
+
+    async function addFavorite(storeKey, storeName, district){
+      if(!authUser){
+        alert("新增收藏前請先登入");
+        toggleAuthBox(true);
+        return;
+      }
+      try{
+        const res = await fetch("/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json",
+            "Authorization": "Bearer " + getToken()
+          },
+          body: JSON.stringify({ storeKey, storeName, district })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "favorite failed");
+        alert("已加入收藏");
+        markFavoriteButton(true);
+      }catch(e){
+        alert("新增收藏失敗：" + e.message);
+      }
+    }
+
+    async function removeFavorite(storeKey){
+      if(!authUser){
+        alert("操作前請先登入");
+        toggleAuthBox(true);
+        return;
+      }
+      try{
+        const res = await fetch(`/api/favorites?storeKey=${encodeURIComponent(storeKey)}`, {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + getToken() }
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "remove favorite failed");
+        alert("已取消收藏");
+        markFavoriteButton(false);
+      }catch(e){
+        alert("取消收藏失敗：" + e.message);
+      }
+    }
+
+    async function isFavorite(storeKey){
+      if(!authUser) return false;
+      try{
+        const res = await fetch("/api/favorites", {
+          headers: { "Authorization": "Bearer " + getToken() }
+        });
+        if(!res.ok) return false;
+        const data = await res.json();
+        const favs = data.favorites || [];
+        return favs.some(f => f.storeKey === storeKey);
+      }catch(e){
+        return false;
+      }
+    }
+
+    function markFavoriteButton(isFav){
+      const btn = document.getElementById("favBtn");
+      if(!btn) return;
+      if(isFav){
+        btn.textContent = "取消收藏";
+        btn.dataset.mode = "remove";
+      }else{
+        btn.textContent = "加入收藏";
+        btn.dataset.mode = "add";
+      }
+    }
+
+    async function loadRankings(){
+      const list = document.getElementById("rankingList");
+      if(!list) return;
+
+      list.innerHTML = "載入中...";
+
+      try{
+        const res = await fetch("/api/rankings/top");
+        if(!res.ok) throw new Error("rankings failed");
+        const data = await res.json();
+        const rows = data.rankings || [];
+
+        if(rows.length === 0){
+          list.innerHTML = `<div class="review-empty">近 30 日內還沒有任何評論喔～</div>`;
+          return;
+        }
+
+        list.innerHTML = rows.map((r, idx) => `
+          <div class="rank-item">
+            <div class="rank-title">No.${idx+1} ${escapeHtml(r.storeName || r.storeKey)}</div>
+            <div class="rank-sub">
+              ${escapeHtml(r.district || "")}
+              <span class="pill">⭐ ${Number(r.avgRating).toFixed(1)}</span>
+              <span class="pill">評論 ${r.count}</span>
+            </div>
+          </div>
+        `).join("");
+      }catch(e){
+        list.innerHTML = `<div class="review-empty">排行讀取失敗～</div>`;
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function showStoreInfo(restaurant) {
+      if (!storeInfoDiv) return;
+
+      const addressText = restaurant.address
+        ? `基隆市 ${restaurant.district} ${restaurant.address}`
+        : `基隆市 ${restaurant.district}`;
+
+      const storeKey = `${restaurant.district}-${restaurant.name}`;
+
+      storeInfoDiv.innerHTML = `
+        <h3 style="margin:0 0 6px 0;">${escapeHtml(restaurant.name)}</h3>
+        <p style="margin:4px 0;">📍 ${escapeHtml(addressText)}</p>
+
+        <p id="avgLine" style="margin:4px 0;">⭐ 平均評分：載入中...</p>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+          <button id="favBtn" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer;background:#ff4d6d;color:#fff;font-weight:bold;">
+            加入收藏
+          </button>
+        </div>
+
+        <div class="review-tabs">
+          <button id="tabWrite" class="active" onclick="switchReviewTab('write')">✍️ 撰寫評論</button>
+          <button id="tabList" onclick="switchReviewTab('list')">📚 歷史評論</button>
+        </div>
+
+        <div id="panelWrite" class="review-panel" style="display:block;">
+          <div class="review-form">
+            <div class="row">
+              <div>
+                <label>評論者（不可修改）</label>
+                <input id="reviewAuthor" type="text" value="${authUser ? escapeHtml(authUser.username) : ""}" disabled>
+              </div>
+              <div>
+                <label>評分</label>
+                <select id="reviewRating">
+                  <option value="5">5 - 超讚</option>
+                  <option value="4">4 - 不錯</option>
+                  <option value="3">3 - 普通</option>
+                  <option value="2">2 - 還好</option>
+                  <option value="1">1 - 不推</option>
+                </select>
+              </div>
+            </div>
+
+            <label>評論內容</label>
+            <textarea id="reviewText" placeholder="你的評論是對店家最大的支持！！"></textarea>
+
+            <div class="actions">
+              <button onclick="submitReview('${escapeHtml(storeKey)}','${escapeHtml(restaurant.name)}','${escapeHtml(restaurant.district)}')">送出評論</button>
+              <span id="reviewMsg" class="review-hint"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="panelList" class="review-panel" style="display:none;">
+          <div id="reviewsList"></div>
+        </div>
+      `;
+      storeInfoDiv.style.display = "block";
+
+      await refreshSummaryLine(storeKey);
+      await loadReviews(storeKey);
+      switchReviewTab("write");
+
+      const favBtn = document.getElementById("favBtn");
+      const fav = await isFavorite(storeKey);
+      markFavoriteButton(fav);
+
+      if(favBtn){
+        favBtn.onclick = async () => {
+          if(favBtn.dataset.mode === "remove"){
+            await removeFavorite(storeKey);
+          }else{
+            await addFavorite(storeKey, restaurant.name, restaurant.district);
+          }
+          const nowFav = await isFavorite(storeKey);
+          markFavoriteButton(nowFav);
+        };
+      }
+    }
+
+    function renderList(list) {
+      storeListDiv.innerHTML = '';
+
+      if (list.length === 0) {
+        storeListDiv.innerHTML = '<p style="color:gray;">目前清單沒有餐廳，請點擊「新增店家」加入你的選項</p>';
+        if (storeInfoDiv) {
+          storeInfoDiv.style.display = "none";
+          storeInfoDiv.innerHTML = "";
+        }
+        activeStoreIndex = null;
+        return;
+      }
+
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'none';
+      ul.style.paddingLeft = '0';
+      ul.style.marginTop = '20px';
+
+      list.forEach((restaurant, index) => {
+        const li = document.createElement('li');
+        li.className = "store-item";
+        li.style.padding = '8px 0';
+        li.style.borderBottom = '1px dashed #ccc';
+
+        li.innerHTML = `
+          <strong>${escapeHtml(restaurant.name)}</strong>
+          <button onclick="removeRestaurant(${index}); renderList(restaurants); event.stopPropagation();"
+            style="float:right; position:relative; bottom:2px; color:red; background:none; border:none; cursor:pointer;">X</button>
+        `;
+
+        li.addEventListener('click', (e) => {
+          if (e.target.tagName.toLowerCase() === 'button') return;
+
+          if (activeStoreIndex === index && storeInfoDiv.style.display !== "none") {
+            storeInfoDiv.style.display = "none";
+            storeInfoDiv.innerHTML = "";
+            activeStoreIndex = null;
+            return;
+          }
+
+          if (restaurant.address) updateMapByAddress(restaurant.address, restaurant.district);
+          else updateMap(restaurant.name, restaurant.district);
+
+          showStoreInfo(restaurant);
+          activeStoreIndex = index;
+        });
+
+        ul.appendChild(li);
+      });
+
+      storeListDiv.appendChild(ul);
+    }
+
+    function getProfileKeyBase(){
+      return authUser ? `profile_${authUser.username}` : "";
+    }
+
+    function getDisplayName(){
+      if(!authUser) return "";
+      return localStorage.getItem(`${getProfileKeyBase()}_displayName`) || authUser.username;
+    }
+
+    function setDisplayName(name){
+      if(!authUser) return;
+      localStorage.setItem(`${getProfileKeyBase()}_displayName`, name);
+    }
+
+    function getAvatarDataUrl(){
+      if(!authUser) return "";
+      return localStorage.getItem(`${getProfileKeyBase()}_avatar`) || "";
+    }
+
+    function setAvatarDataUrl(dataUrl){
+      if(!authUser) return;
+      localStorage.setItem(`${getProfileKeyBase()}_avatar`, dataUrl);
+    }
+
+    function saveDisplayName(){
+      if(!authUser) return;
+      const input = document.getElementById("displayNameInput");
+      if(!input) return;
+      const name = input.value.trim();
+      if(!name){
+        alert("請填寫名字");
+        return;
+      }
+      setDisplayName(name);
+      const t = document.getElementById("profileNameText");
+      if(t) t.textContent = name;
+      alert("名字已更新");
+    }
+
+    function fileToDataUrl(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function showProfile(){
+      if(!authUser){
+        showHome();
+        toggleAuthBox(true);
+        return;
+      }
+
+      const prof = document.getElementById("profilePanel");
+      if(!prof) return;
+
+      showProfilePanel();
+
+      prof.innerHTML = `
+        <div class="profile-topbar">
+          <button class="back-btn" onclick="showHome()">← 返回</button>
+          <div style="font-weight:bold;">🙋 個人檔案</div>
+          <div style="width:64px;"></div>
+        </div>
+
+        <div class="profile-header">
+          <div class="avatar" id="avatarBox">
+            ${getAvatarDataUrl()
+              ? `<img src="${getAvatarDataUrl()}" alt="avatar">`
+              : `<span style="color:#777;font-size:12px;">無頭貼</span>`}
+          </div>
+          <div style="flex:1;">
+            <p class="profile-name" id="profileNameText">${escapeHtml(getDisplayName())}</p>
+            <div class="profile-sub">帳號：${escapeHtml(authUser.username)}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="accordion-btn" onclick="toggleAccordion('accEdit')">✏️ 編輯個人檔案</button>
+          <div id="accEdit" class="accordion-content">
+            <div class="inline-row">
+              <label style="font-size:12px;color:#555;">上傳頭貼：</label>
+              <input id="avatarInput" type="file" accept="image/*" style="font-size:12px;">
+            </div>
+
+            <div class="inline-row" style="margin-top:8px;">
+              <input id="displayNameInput" class="input" type="text" placeholder="名字（顯示名稱）" value="${escapeHtml(getDisplayName())}">
+              <button class="mini-btn primary" onclick="saveDisplayName()">儲存名字</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="accordion-btn" onclick="onToggleFav()">❤️ 我的收藏</button>
+          <div id="accFav" class="accordion-content">
+            <div id="myFavList" class="review-hint">尚未載入</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="accordion-btn" onclick="onToggleMyReviews()">📝 我的評論</button>
+          <div id="accMyReviews" class="accordion-content">
+            <div id="myReviewList" class="review-hint">尚未載入</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="accordion-btn" onclick="toggleAccordion('accPw')">🔐 修改密碼</button>
+          <div id="accPw" class="accordion-content">
+            <label style="font-size:12px;color:#555;">原密碼</label>
+            <input id="pwOld" class="input" type="password" placeholder="請輸入原密碼">
+            <label style="font-size:12px;color:#555;">新密碼</label>
+            <input id="pwNew" class="input" type="password" placeholder="新密碼（至少 6 個字）">
+            <label style="font-size:12px;color:#555;">確認新密碼</label>
+            <input id="pwNew2" class="input" type="password" placeholder="再次輸入新密碼">
+            <div class="inline-row" style="margin-top:6px;">
+              <button class="mini-btn primary" onclick="changePassword()">修改密碼</button>
+              <span id="pwMsg" class="review-hint"></span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const avatarInput = document.getElementById("avatarInput");
+      if(avatarInput){
+        avatarInput.onchange = async (e) => {
+          const file = e.target.files && e.target.files[0];
+          if(!file) return;
+          if(!file.type.startsWith("image/")){
+            alert("請選圖片檔");
+            return;
+          }
+          const dataUrl = await fileToDataUrl(file);
+          setAvatarDataUrl(dataUrl);
+          const box = document.getElementById("avatarBox");
+          if(box) box.innerHTML = `<img src="${dataUrl}" alt="avatar">`;
+        };
+      }
+    }
+
+    async function onToggleFav(){
+      toggleAccordion("accFav");
+      const box = document.getElementById("accFav");
+      const list = document.getElementById("myFavList");
+      if(box && box.classList.contains("open") && list && list.textContent.includes("尚未載入")){
+        await loadMyFavorites();
+      }
+    }
+
+    async function onToggleMyReviews(){
+      toggleAccordion("accMyReviews");
+      const box = document.getElementById("accMyReviews");
+      const list = document.getElementById("myReviewList");
+      if(box && box.classList.contains("open") && list && list.textContent.includes("尚未載入")){
+        await loadMyReviews();
+      }
+    }
+
+    async function loadMyFavorites(){
+      const box = document.getElementById("myFavList");
+      if(!box) return;
+      box.textContent = "載入中...";
+
+      try{
+        const res = await fetch("/api/favorites", {
+          headers: { "Authorization": "Bearer " + getToken() }
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message || "favorites failed");
+        const favs = data.favorites || [];
+
+        if(favs.length === 0){
+          box.innerHTML = `<div class="review-empty">目前尚無收藏</div>`;
+          return;
+        }
+
+        box.innerHTML = favs.map(f => `
+          <div class="fav-item">
+            <div class="item-left">
+              <div class="item-title">${escapeHtml(f.storeName || f.storeKey)}</div>
+              <div class="item-sub">${escapeHtml(f.district || "")}</div>
+            </div>
+            <div class="inline-row">
+              <button class="mini-btn danger" onclick="removeFavoriteFromProfile('${escapeHtml(f.storeKey)}')">刪除</button>
+            </div>
+          </div>
+        `).join("");
+      }catch(e){
+        box.innerHTML = `<div class="review-empty">收藏讀取失敗：${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function removeFavoriteFromProfile(storeKey){
+      await removeFavorite(storeKey);
+      await loadMyFavorites();
+    }
+
+    async function loadMyReviews(){
+      const box = document.getElementById("myReviewList");
+      if(!box) return;
+      box.textContent = "載入中...";
+
+      try{
+        const res = await fetch("/api/reviews/mine", {
+          headers: { "Authorization": "Bearer " + getToken() }
+        });
+
+        if(!res.ok){
+          box.innerHTML = `<div class="review-empty">我的評論讀取失敗</div>`;
+          return;
+        }
+
+        const data = await res.json();
+        const rows = data.reviews || [];
+
+        if(rows.length === 0){
+          box.innerHTML = `<div class="review-empty">目前尚無任何評論紀錄</div>`;
+          return;
+        }
+
+        box.innerHTML = rows.map(r => {
+          const created = r.createdAt ? new Date(r.createdAt) : null;
+          const timeText = created && !isNaN(created.getTime()) ? created.toLocaleString("zh-TW") : "";
+          const rating = Number(r.rating || 0);
+          const storeName = r.storeName || r.storeKey || "未知店家";
+          const district = r.district || "";
+          const comment = r.comment || "";
+
+          return `
+            <div class="myreview-item">
+              <div class="item-left">
+                <div class="item-title">${escapeHtml(storeName)} <span class="pill">⭐ ${rating.toFixed(1)}</span></div>
+                <div class="item-sub">${escapeHtml(district)} ${timeText ? `｜ ${escapeHtml(timeText)}` : ""}</div>
+                <div class="item-text">${escapeHtml(comment)}</div>
+              </div>
+              <div class="inline-row"></div>
+            </div>
+          `;
+        }).join("");
+      }catch(e){
+        box.innerHTML = `<div class="review-empty">我的評論讀取失敗</div>`;
+      }
+    }
+
+    async function changePassword(){
+      const msg = document.getElementById("pwMsg");
+      const oldPw = (document.getElementById("pwOld")?.value || "");
+      const newPw = (document.getElementById("pwNew")?.value || "");
+      const newPw2= (document.getElementById("pwNew2")?.value || "");
+
+      if(msg) msg.textContent = "";
+
+      if(!oldPw || !newPw || !newPw2){
+        if(msg) msg.textContent = "資料填寫不完整";
+        return;
+      }
+      if(newPw.length < 6){
+        if(msg) msg.textContent = "密碼至少 6 個字";
+        return;
+      }
+      if(newPw !== newPw2){
+        if(msg) msg.textContent = "兩次密碼不一致";
+        return;
+      }
+
+      if(msg) msg.textContent = "修改中...";
+
+      try{
+        const res = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json",
+            "Authorization": "Bearer " + getToken()
+          },
+          body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
+        });
+
+        const data = await res.json().catch(()=> ({}));
+        if(!res.ok) throw new Error(data.message || "change password failed");
+
+        if(msg) msg.textContent = "修改密碼成功！";
+        document.getElementById("pwOld").value = "";
+        document.getElementById("pwNew").value = "";
+        document.getElementById("pwNew2").value = "";
+      }catch(e){
+        if(msg) msg.textContent = "修改失敗：" + e.message;
+      }
+    }
+
+    window.addEventListener("load", start, false);
+  </script>
+</head>
+
+<body>
+    <header>
+        <h1>今天吃什麼?</h1>
+        <div class="header-right">
+            <button id="random">隨機抽取</button>
+            <button id="add">新增店家</button>
+
+            <button id="btnProfile">個人檔案</button>
+
+            <span id="userBadge" class="user-badge" style="display:none;"></span>
+            <button id="btnLogin">登入/註冊</button>
+            <button id="btnLogout" style="display:none;">登出</button>
+        </div>
+    </header>
+
+    <div class="container">
+      <div class="map-area">
+        <div id="map">
+          <iframe
+            id="mapFrame"
+            class="map-frame"
+            src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d57801.57495519922!2d121.71041707810772!3d25.115451218304766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1z6aSQ5buz!5e0!3m2!1szh-TW!2stw!4v1764218690662!5m2!1szh-TW!2stw"
+            width="600"
+            height="450"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="list">
+        <div id="homePanel">
+
+          <div class="rank-card" id="rankingBox">
+            <h2 style="margin:0 0 8px 0;">🏆 最近大家都在吃...</h2>
+            <div id="rankingList" class="review-hint">載入中...</div>
+          </div>
+
+          <div id="authBox">
+            <h3 style="margin:0 0 6px 0;">登入 / 註冊</h3>
+            <input id="authUsername" type="text" placeholder="帳號（至少 3 個字）">
+            <input id="authPassword" type="password" placeholder="密碼（至少 6 個字）">
+            <div class="row">
+              <button onclick="login()">登入</button>
+              <button onclick="register()">註冊</button>
+              <button onclick="toggleAuthBox(false)" style="background:#666;">關閉</button>
+            </div>
+            <div id="authMsg"></div>
+          </div>
+
+          <h2>餐廳列表</h2>
+
+          <input type="text" id="search" placeholder="搜尋店名">
+
+          <select id="where">
+            <option value="中正區">中正區</option>
+            <option value="信義區">信義區</option>
+            <option value="仁愛區">仁愛區</option>
+            <option value="中山區">中山區</option>
+            <option value="安樂區">安樂區</option>
+            <option value="七堵區">七堵區</option>
+            <option value="暖暖區">暖暖區</option>
+          </select>
+
+          <button id="submit">送出</button>
+
+          <div id="storeList"></div>
+
+          <div id="storeInfo"></div>
+        </div>
+
+        <div id="profilePanel" style="display:none;"></div>
+
+      </div>
+    </div>
+</body>
+</html>
